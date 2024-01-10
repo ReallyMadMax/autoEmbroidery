@@ -6,8 +6,8 @@ from tkinter import ALL, EventType
 def stitchVisualize(file, colorOrder):
     # super basic tutrle drawing. to represent our stitches
     needle = turtle.Turtle()
-    needle.speed("fastest")
-    turtle.tracer(0,0)
+    needle.speed("fast")
+    #turtle.tracer(0,0)
     needle.shape("circle")
     needle.shapesize(0.25)
     needle.penup()
@@ -32,7 +32,7 @@ def stitchVisualize(file, colorOrder):
         elif "jump" not in file[pos-1][0]:
             needle.pendown()
             # stamp will show where the individual stich is but also makes it very laggy
-            #needle.stamp()
+            needle.stamp()
 
         x = file[pos][2]
         y = file[pos][1]

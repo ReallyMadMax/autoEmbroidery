@@ -54,7 +54,7 @@ from StitchDraw import stitchVisualize
 from StitchReader import parseStitch
 
 file = "frame photo.DSB"
-colorScheme = [3,4,9,1,5,7,7,9,9,9,9,9,10,11,10,8,4,6,7,8,12,6,7]
+colorScheme = [3,4,9,1,5,7,7,9,9,9,9,9,10,11,10,8,4,6,7,8,12,6,7,1,1,1,1]
 
 content = open(file, "rb")
 
