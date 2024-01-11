@@ -54,8 +54,22 @@ def stitchVisualize(file, colorOrder):
             needle.setheading(90)
             needle.forward(y)
 
+        print((needle.heading()))
+
+    needle.penup()
+    needle.setheading(0)
+    needle.goto(-25,0)
+    needle.pendown()
+    for i in range(2):
+        needle.fd(325)
+        needle.left(90)
+        needle.fd(300)
+        needle.left(90)
+
+
     screen = needle.getscreen()
     canvas = screen.getcanvas()
+    screen.bgcolor("black")
 
     # zoom into canvas. could be moved elsewhere in the future
     def do_zoom(event):
@@ -69,6 +83,8 @@ def stitchVisualize(file, colorOrder):
         canvas.canvasx(baseline)
         canvas.canvasy(baseline)
         canvas.scale(baseline, baseline)
+
+
 
     canvas.bind("<MouseWheel>", do_zoom)
     canvas.bind('<ButtonPress-1>', lambda event: canvas.scan_mark(event.x, event.y))

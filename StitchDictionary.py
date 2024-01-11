@@ -112,10 +112,30 @@ def runStitchTriple(x1, y1, x2, y2, length = defaultLength):
 # needs to be passed an array of 3 stitches at a minimum
 # we add the first vector to the end of the list so it makes a closed shape.
 def fillStitch(vectorList, length = defaultLength, density = defaultDensity, angle = defaultAngle):
+
+    minX,minY,maxX,maxY = (0,0,0,0)
+
+    # creating the bounding boxes for our shape
+    for item in vectorList:
+        if item[0] > maxX:
+            maxX = item[0]
+        elif item[0] < minX:
+            minX = item[0]
+        if item[1] > maxY:
+            maxY = item[1]
+        elif item[1] < minY:
+            minY = item[1]
+
+
+
+    output, arrays, centerLines, edgeLines, areas, triangleVectors, angles = ([],[],[],[],[],[],[])
+    totalArea = 0
+
+    #arrays.append(runStitch(0,0,middleX,middleY,length))
+
     vectorList.append(vectorList[0])
     #print(vectorList)
-    output = []
-    arrays = []
+
     for pos in range(len(vectorList)-1):
         vec1 = vectorList[pos]
         x1 = vec1[0]
@@ -125,15 +145,33 @@ def fillStitch(vectorList, length = defaultLength, density = defaultDensity, ang
         y2 = vec2[1]
         stitches = runStitch(x1,y1,x2,y2,length)
         arrays.append(stitches)
+        # lines for our triangles
+        edgeLines.append(math.sqrt(((x2-x1)**2) + ((y2-y1)**2)))
     
     for array in arrays:
         for stitches in array:
             output.append(stitches)
 
+    # calculating the area of the shape maybe
+
+    print(f"box area:x1,y1,x2,y2: {minX},{minY},{maxX},{maxY}")
+
     return output
 
-shape = [[0,0],[-300,0],[0,300],[300,0]]
+# calculate area of triangle when 3 sides are known
+def heronFormula(a,b,c):
+    s = (a+b+c)/2
+    #area = math.sqrt(s*(s-a)*(s-b)*(s-c))
+    return 0
+
+def cosineLaw(a,b,c):
+    angle = ((a**2)-(b**2)-(c**2))/((-2)*b*c)
+    #angle = math.acos(angle)*180/math.pi
+    return angle
+
+
+shape = [[0,0],[200,50],[300,300],[100,200],[100,100],[-25,100]]
 parsed = []
 for stitches in fillStitch(shape):
     parsed.append(parseStitch(stitches))
-stitchVisualize(parsed,[2,2])
+stitchVisualize(parsed,[1,1])
