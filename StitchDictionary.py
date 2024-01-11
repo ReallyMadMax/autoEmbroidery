@@ -14,69 +14,71 @@ defaultLength = 20
 defaultDensity = 5
 defaultAngle = 0
 
+
 # length of 20 is 2mm
 # goes from point A to B
-def runStitch(x1, y1, x2, y2, length = defaultLength):
+def runStitch(x1, y1, x2, y2, length=defaultLength):
     x = 0
     y = 0
-    direct = math.ceil(math.sqrt(((x2-x1)**2) + ((y2-y1)**2)))
-    #print(f"direct: {direct}")
+    direct = math.ceil(math.sqrt(((x2 - x1) ** 2) + ((y2 - y1) ** 2)))
+    # print(f"direct: {direct}")
     output = []
     # if there is only a single stitch
-    if direct < length + length/2:
-        output = writeStitch(x2-x1, y2-y1)
+    if direct < length + length / 2:
+        output = writeStitch(x2 - x1, y2 - y1)
     # logic for multiple stitches
     else:
         fraction = int(direct / length)
-        #print(f"fraction: {fraction}")
+        # print(f"fraction: {fraction}")
         fractionX = int((x2 - x1) / fraction)
         fractionY = int((y2 - y1) / fraction)
-        #print(f"fractionX: {fractionX}, fractionY: {fractionY}")
+        # print(f"fractionX: {fractionX}, fractionY: {fractionY}")
 
         for i in range(fraction):
             output += writeStitch(fractionX, fractionY)
             x += fractionX
             y += fractionY
         # finding any remainder x or y values so we make sure we land exactly on our x2 and y2
-        remainderX = abs((x2-x1) - (fractionX*fraction))
-        remainderY = abs((y2-y1) - (fractionY*fraction))
-        #print(f"remainderX: {remainderX}, remainderY: {remainderY}")
+        remainderX = abs((x2 - x1) - (fractionX * fraction))
+        remainderY = abs((y2 - y1) - (fractionY * fraction))
+        # print(f"remainderX: {remainderX}, remainderY: {remainderY}")
 
         totalStiches = int(len(output))
 
         # distributing the remainder X between all of the existing x values
         for split in range(remainderX):
             pos = split % totalStiches
-            newX = int(output[pos][2],2) + 1
+            newX = int(output[pos][2], 2) + 1
             x += 1
             output[pos][2] = bin(newX)
 
         # distributing the remainder Y between all of the existing y values
         for split in range(remainderY):
             pos = split % totalStiches
-            newY = int(output[pos][1],2) + 1
+            newY = int(output[pos][1], 2) + 1
             y += 1
             output[pos][1] = bin(newY)
 
-        #print(f"final X: {x}, final Y: {y}")
+        # print(f"final X: {x}, final Y: {y}")
 
-        #randomly shuffle all values so the slighlty longer moves are more distrbuted and not all right beside each other
+        # randomly shuffle all values so the slighlty longer moves are more distrbuted and not all right beside each other
         random.shuffle(output)
 
-        #for stitch in output:
+        # for stitch in output:
         #    print(f"x: {parseStitch(stitch)[2]}, y: {parseStitch(stitch)[1]}")
-        #print("END RUN STITCH")
+        # print("END RUN STITCH")
     return output
 
+
 # goes from point A to B to A
-def runStitchDouble(x1, y1, x2, y2, length = defaultLength):
+def runStitchDouble(x1, y1, x2, y2, length=defaultLength):
     backwards = []
     forwards = runStitch(x1, y1, x2, y2, length)
 
-    #this is annoying but needed so we dont overwrite the values in forwards
+    # this is annoying but needed so we dont overwrite the values in forwards
     cloneList = copy.deepcopy(forwards)
 
-    #go through the stitches in reverse order so we go directly backwards
+    # go through the stitches in reverse order so we go directly backwards
     for stitch in reversed(cloneList):
         byte1 = stitch[0][2:]
         newStr = "1"
@@ -95,45 +97,135 @@ def runStitchDouble(x1, y1, x2, y2, length = defaultLength):
         stitch[0] = "0b" + newStr
         backwards.append(stitch)
 
-    #for stitch in backwards:
+    # for stitch in backwards:
     #    print(f"x: {parseStitch(stitch)[2]}, y: {parseStitch(stitch)[1]}")
 
-    #print("END RUN STITCH DOUBLE")
-    #print(forwards)
-    #print(backwards)
+    # print("END RUN STITCH DOUBLE")
+    # print(forwards)
+    # print(backwards)
     return (forwards + backwards)
 
+
 # triple stacked run stitch. Goes A -> B -> A -> B
-def runStitchTriple(x1, y1, x2, y2, length = defaultLength):
+def runStitchTriple(x1, y1, x2, y2, length=defaultLength):
     double = runStitchDouble(x1, y1, x2, y2, length)
-    half = int(len(double)/2)
+    half = int(len(double) / 2)
     return double + double[:half]
 
+
 # needs to be passed an array of 3 stitches at a minimum
-# we add the first vector to the end of the list so it makes a closed shape.
-def fillStitch(vectorList, length = defaultLength, density = defaultDensity, angle = defaultAngle):
-    vectorList.append(vectorList[0])
-    #print(vectorList)
-    output = []
-    arrays = []
-    for pos in range(len(vectorList)-1):
-        vec1 = vectorList[pos]
-        x1 = vec1[0]
-        y1 = vec1[1]
-        vec2 = vectorList[pos+1]
-        x2 = vec2[0]
-        y2 = vec2[1]
-        stitches = runStitch(x1,y1,x2,y2,length)
-        arrays.append(stitches)
-    
-    for array in arrays:
-        for stitches in array:
-            output.append(stitches)
+# we add the first vector to the end of the list, so it makes a closed shape.
+def fillStitch(vectorList, length=defaultLength, density=defaultDensity, angle=defaultAngle):
+    # vectorList.append(vectorList[0])
+    # print(vectorList)
+    stitches_to_stitch = []
+    lines_to_stitch = []
+    # find the points at the extremes
+    # find which points are tangent to the angle line
+    # ( if there are multiple, then choose the furthest one on either side )
+    # under the assumption that there are no lines parallel to the angle line
+    min_vector = vectorList[0]
+    max_vector = vectorList[0]
+    for vector in vectorList:
+        if vector[1] < min_vector[1]:
+            min_vector = vector
+        if vector[1] > max_vector[1]:
+            max_vector = vector
 
-    return output
+    segments = []
+    for v in range(len(vectorList)):
+        segments.append([vectorList[v-1], vectorList[v]])
 
-shape = [[0,0],[-300,0],[0,300],[300,0]]
+    number_of_slices = math.ceil((max_vector[1] - min_vector[1])/density)
+    line = [[0, min_vector[1]], [1, min_vector[1]]]
+    for s in range(number_of_slices):
+        slice = [[line[0][0], line[0][1]], [line[1][0], line[1][1]]]
+        slice[0][1] += s * density
+        slice[1][1] += s * density
+
+        intersections = []
+        for segment in segments:
+            if line_intersects_segment(slice, segment):
+                intersections.append(get_intersection_point(slice, segment))
+
+        if intersections:
+            if len(intersections) > 2:
+                for i in range(1, len(intersections) - 1):
+                    # checking for tangent points
+                    if intersections[i] in vectorList:
+                        intersections.pop(i)
+
+            # adding vertical line from last end point to the start of the new line
+            if lines_to_stitch:
+                lines_to_stitch.append([lines_to_stitch[-1][1], intersections[0]])
+
+            # adding the lines that are within the shape
+            for i in range(1, len(intersections), 2):
+                lines_to_stitch.append([intersections[i-1], intersections[i]])
+
+
+
+    for line in lines_to_stitch:
+        x1 = line[0][0]
+        y1 = line[0][1]
+        x2 = line[1][0]
+        y2 = line[1][1]
+        stitches = runStitch(x1, y1, x2, y2, length)
+        for stitch in stitches:
+            stitches_to_stitch.append(stitch)
+
+    return stitches_to_stitch
+
+
+def line_intersects_segment(line, segment):
+    x1 = int(segment[0][0])
+    y1 = int(segment[0][1])
+    x2 = int(segment[1][0])
+    y2 = int(segment[1][1])
+    x3 = int(line[0][0])
+    y3 = int(line[0][1])
+    x4 = int(line[1][0])
+    y4 = int(line[1][1])
+
+    if ((x4 - x3) * (y1 - y3) - (x1 - x3) * (y4 - y3)) * ((x4 - x3) * (y2 - y3) - (x2 - x3) * (y4 - y3)) <= 0:
+        return True
+    else:
+        return False
+
+
+def get_intersection_point(line, segment):
+    x1 = int(segment[0][0])
+    y1 = int(segment[0][1])
+    x2 = int(segment[1][0])
+    y2 = int(segment[1][1])
+    x3 = int(line[0][0])
+    y3 = int(line[0][1])
+    x4 = int(line[1][0])
+    y4 = int(line[1][1])
+
+    # write the lines in general form
+    # convert from y-y1 = m(x-x1) where m =
+    # ax + by + c = 0
+    a1 = y2 - y1
+    b1 = -(x2 - x1)
+    c1 = x2*y1 - y2*x1
+
+    a2 = y4 - y3
+    b2 = -(x4 - x3)
+    c2 = x4 * y3 - y4 * x3
+
+    # using cross multiplication rule
+    if a1 != a2 or c1 != c2:
+        x = int((b1*c2 - b2*c1)/(a1*b2 - a2*b1))
+        y = int((c1*a2 - c2*a1)/(a1*b2 - a2*b1))
+
+        return [x, y]
+    else:
+        return segment[0]
+
+
+shape = [[0, 0], [-300, 0], [0, 300], [300, 0]]
 parsed = []
 for stitches in fillStitch(shape):
     parsed.append(parseStitch(stitches))
-stitchVisualize(parsed,[2,2])
+stitchVisualize(parsed, [2, 2])
