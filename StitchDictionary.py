@@ -150,10 +150,18 @@ def fillStitch(vectorList, length=defaultLength, density=defaultDensity, angle=d
 
         if intersections:
             if len(intersections) > 2:
-                for i in range(1, len(intersections) - 1):
+                intersections.sort()
+                i = 1
+                while i < len(intersections) - 1:
                     # checking for tangent points
                     if intersections[i] in vectorList:
                         intersections.pop(i)
+                    else:
+                        i += 1
+
+            # flip every other row so that it lines up for the proper stitching order
+            if s % 2 == 1:
+                intersections.reverse()
 
             # adding vertical line from last end point to the start of the new line
             if lines_to_stitch:
@@ -224,7 +232,7 @@ def get_intersection_point(line, segment):
         return segment[0]
 
 
-shape = [[0, 0], [-300, 0], [0, 300], [300, 0]]
+shape = [[300, 0], [0, 150], [-300, 0], [0, 300]]
 parsed = []
 for stitches in fillStitch(shape):
     parsed.append(parseStitch(stitches))
