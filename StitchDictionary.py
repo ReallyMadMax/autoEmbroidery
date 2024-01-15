@@ -149,15 +149,19 @@ def fillStitch(vectorList, length=defaultLength, density=defaultDensity, angle=d
                 intersections.append(get_intersection_point(slice, segment))
 
         if intersections:
-            if len(intersections) > 2:
-                intersections.sort()
-                i = 1
-                while i < len(intersections) - 1:
-                    # checking for tangent points
-                    if intersections[i] in vectorList:
-                        intersections.pop(i)
-                    else:
-                        i += 1
+            intersections.sort()
+            # this was supposed to deal with tangent points but
+            # since they will always appear next to each other it won't be added as a stitch
+            # if len(intersections) > 2:
+            #     i = 0
+            #     while i < len(intersections):
+            #         # checking for tangent points
+            #         #
+            #         if intersections[i] in intersections[i+1:]:
+            #             intersections.pop(i)
+            #             intersections.pop(i)
+            #         else:
+            #             i += 1
 
             # flip every other row so that it lines up for the proper stitching order
             if s % 2 == 1:
