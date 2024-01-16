@@ -14,7 +14,7 @@ def parseStitch(stitchBytes):
     if byte1[4] == "1":
         stitch[0] += " color change"
     if byte1[7] == "1":
-        stitch[0] = " jump"
+        stitch[0] = "jump"
     if byte1[3] == "1":
         stitch[0] = "end"
     return stitch

@@ -5,7 +5,7 @@ There will also be optional parameters for length and density
 Not yet sure how to account for pull compensation
 '''
 import math
-from StitchReader import parseStitch, writeStitch
+from StitchReader import parseStitch, writeStitch, writeJump
 from StitchDraw import stitchVisualize
 import random
 import copy
@@ -123,7 +123,6 @@ def fillStitch(vectorList, length=defaultLength, density=defaultDensity, angle=d
     # find the points at the extremes
     # find which points are tangent to the angle line
     # ( if there are multiple, then choose the furthest one on either side )
-    # under the assumption that there are no lines parallel to the angle line
     min_vector = vectorList[0]
     max_vector = vectorList[0]
     for vector in vectorList:
@@ -132,12 +131,15 @@ def fillStitch(vectorList, length=defaultLength, density=defaultDensity, angle=d
         if vector[1] > max_vector[1]:
             max_vector = vector
 
+    # adding all the points as connecting lines to a list
     segments = []
     for v in range(len(vectorList)):
         segments.append([vectorList[v-1], vectorList[v]])
 
     number_of_slices = math.ceil((max_vector[1] - min_vector[1])/density)
+    # defining the direction vector of the angle line for calculations
     line = [[0, min_vector[1]], [1, min_vector[1]]]
+
     for s in range(number_of_slices):
         slice = [[line[0][0], line[0][1]], [line[1][0], line[1][1]]]
         slice[0][1] += s * density
@@ -150,54 +152,57 @@ def fillStitch(vectorList, length=defaultLength, density=defaultDensity, angle=d
 
         if intersections:
             intersections.sort()
-            # this was supposed to deal with tangent points but
-            # since they will always appear next to each other it won't be added as a stitch
-            # if len(intersections) > 2:
-            #     i = 0
-            #     while i < len(intersections):
-            #         # checking for tangent points
-            #         #
-            #         if intersections[i] in intersections[i+1:]:
-            #             intersections.pop(i)
-            #             intersections.pop(i)
-            #         else:
-            #             i += 1
 
             # flip every other row so that it lines up for the proper stitching order
             if s % 2 == 1:
                 intersections.reverse()
 
-            # adding vertical line from last end point to the start of the new line
-            if lines_to_stitch:
+            # adding line along the outline from last end point to the start of the new line
+            if stitches_to_stitch:
+                stitches_to_stitch.append(runStitch(lines_to_stitch[-1][1][0], lines_to_stitch[-1][1][1], intersections[0][0], intersections[0][1])[0])
                 lines_to_stitch.append([lines_to_stitch[-1][1], intersections[0]])
 
             # adding the lines that are within the shape
             for i in range(1, len(intersections), 2):
-                lines_to_stitch.append([intersections[i-1], intersections[i]])
+                # if there are multiple segments in a slice then add a jump stitch after each segment
+                if i > 1:
+                    j1 = intersections[i-2]
+                    j2 = intersections[i-1]
+                    stitches_to_stitch.append(writeJump(j2[0]-j1[0], j2[1]-j1[1])[0])
+
+                p1 = intersections[i-1]
+                p2 = intersections[i]
+                lines_to_stitch.append([p1, p2])
+                for stitch in runStitch(p1[0], p1[1], p2[0], p2[1]):
+                    stitches_to_stitch.append(stitch)
 
 
-
-    for line in lines_to_stitch:
-        x1 = line[0][0]
-        y1 = line[0][1]
-        x2 = line[1][0]
-        y2 = line[1][1]
-        stitches = runStitch(x1, y1, x2, y2, length)
-        for stitch in stitches:
-            stitches_to_stitch.append(stitch)
-
+    # for line in lines_to_stitch:
+    #     x1 = line[0][0]
+    #     y1 = line[0][1]
+    #     x2 = line[1][0]
+    #     y2 = line[1][1]
+    #     stitches = runStitch(x1, y1, x2, y2, length)
+    #     for stitch in stitches:
+    #         stitches_to_stitch.append(stitch)
+    print(lines_to_stitch)
     return stitches_to_stitch
-
+def to_points(point):
+    return int(point[0]), int(point[1])
+def line_to_points(start, end):
+    start_points = to_points(start)
+    end_points = to_points(end)
+    return start_points[0], start_points[1], end_points[0], end_points[0]
 
 def line_intersects_segment(line, segment):
-    x1 = int(segment[0][0])
-    y1 = int(segment[0][1])
-    x2 = int(segment[1][0])
-    y2 = int(segment[1][1])
-    x3 = int(line[0][0])
-    y3 = int(line[0][1])
-    x4 = int(line[1][0])
-    y4 = int(line[1][1])
+    x1 = segment[0][0]
+    y1 = segment[0][1]
+    x2 = segment[1][0]
+    y2 = segment[1][1]
+    x3 = line[0][0]
+    y3 = line[0][1]
+    x4 = line[1][0]
+    y4 = line[1][1]
 
     if ((x4 - x3) * (y1 - y3) - (x1 - x3) * (y4 - y3)) * ((x4 - x3) * (y2 - y3) - (x2 - x3) * (y4 - y3)) <= 0:
         return True
@@ -206,14 +211,14 @@ def line_intersects_segment(line, segment):
 
 
 def get_intersection_point(line, segment):
-    x1 = int(segment[0][0])
-    y1 = int(segment[0][1])
-    x2 = int(segment[1][0])
-    y2 = int(segment[1][1])
-    x3 = int(line[0][0])
-    y3 = int(line[0][1])
-    x4 = int(line[1][0])
-    y4 = int(line[1][1])
+    x1 = segment[0][0]
+    y1 = segment[0][1]
+    x2 = segment[1][0]
+    y2 = segment[1][1]
+    x3 = line[0][0]
+    y3 = line[0][1]
+    x4 = line[1][0]
+    y4 = line[1][1]
 
     # write the lines in general form
     # convert from y-y1 = m(x-x1) where m =
