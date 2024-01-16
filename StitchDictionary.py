@@ -167,7 +167,10 @@ def fillStitch(vectorList, length=defaultLength, density=defaultDensity, angle=d
 
             # adding line along the outline from last end point to the start of the new line
             if stitches_to_stitch:
-                stitches_to_stitch.append(runStitch(lines_to_stitch[-1][1][0], lines_to_stitch[-1][1][1], intersections[0][0], intersections[0][1])[0])
+                p0 = lines_to_stitch[-1][1]
+                p1 = intersections[0]
+                for stitch in runStitch(p0[0], p0[1], p1[0], p1[1], length):
+                    stitches_to_stitch.append(stitch)
                 lines_to_stitch.append([lines_to_stitch[-1][1], intersections[0]])
 
             # adding the lines that are within the shape
@@ -181,7 +184,7 @@ def fillStitch(vectorList, length=defaultLength, density=defaultDensity, angle=d
                 p1 = intersections[i-1]
                 p2 = intersections[i]
                 lines_to_stitch.append([p1, p2])
-                for stitch in runStitch(p1[0], p1[1], p2[0], p2[1]):
+                for stitch in runStitch(p1[0], p1[1], p2[0], p2[1], length):
                     stitches_to_stitch.append(stitch)
 
 
@@ -251,6 +254,6 @@ def get_intersection_point(line, segment):
 
 shape = [[300, 0], [0, 150], [-300, 0], [0, 300]]
 parsed = []
-for stitches in fillStitch(shape):
+for stitches in fillStitch(shape, density=60):
     parsed.append(parseStitch(stitches))
 stitchVisualize(parsed, [2, 2])
