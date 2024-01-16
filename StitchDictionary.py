@@ -152,6 +152,14 @@ def fillStitch(vectorList, length=defaultLength, density=defaultDensity, angle=d
 
         if intersections:
             intersections.sort()
+            # must remove stitches that don't go anywhere
+            i = 1
+            while i < len(intersections):
+                if intersections[i-1] == intersections[i]:
+                    intersections.pop(i-1)
+                    intersections.pop(i-1)
+                else:
+                    i += 1
 
             # flip every other row so that it lines up for the proper stitching order
             if s % 2 == 1:
