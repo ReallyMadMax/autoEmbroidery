@@ -142,9 +142,9 @@ def fillStitch(vectorList, length=defaultLength, density=defaultDensity, angle=d
 
             side = point_on_line_side(direction_vector, other_point)
 
-            if side > 1:
+            if side > 0.1:
                 points_above.append(other_point)
-            elif side < -1:
+            elif side < -0.1:
                 points_below.append(other_point)
 
         if not points_above:
@@ -305,6 +305,6 @@ def get_intersection_point(line, segment):
 
 shape = [[300, 0], [0, 150], [-300, 0], [0, 300]]
 parsed = []
-for stitches in fillStitch(shape, density=10, angle=45):
+for stitches in fillStitch(shape, density=10, angle=20):
     parsed.append(parseStitch(stitches))
 stitchVisualize(parsed, [2, 2])
