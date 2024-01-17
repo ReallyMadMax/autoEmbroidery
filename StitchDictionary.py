@@ -124,8 +124,8 @@ def fillStitch(vectorList, length=defaultLength, density=defaultDensity, angle=d
 
     # direction vector of the angle
     # make it bigger so when it is cast to int it becomes more accurate?
-    direction = [int(math.cos(angle * math.pi / 180)), int(math.sin(angle * math.pi / 180))]
-
+    direction = [math.cos(angle * math.pi / 180), math.sin(angle * math.pi / 180)]
+    print(math.cos(angle * math.pi / 180), math.sin(angle * math.pi / 180))
     # use cross product to find the extreme points
     # if when placed at a point all other points are of the same sign then it is an extreme
     min_vector = []
@@ -140,9 +140,12 @@ def fillStitch(vectorList, length=defaultLength, density=defaultDensity, angle=d
             if other_point == point:
                 continue
 
-            if point_on_line_side(direction_vector, other_point) > 0:
+            side = point_on_line_side(direction_vector, other_point)
+            print(side)
+
+            if side > 1:
                 points_above.append(other_point)
-            elif point_on_line_side(direction_vector, other_point) < 0:
+            elif side < -1:
                 points_below.append(other_point)
 
         if not points_above:
@@ -303,6 +306,6 @@ def get_intersection_point(line, segment):
 
 shape = [[300, 0], [0, 150], [-300, 0], [0, 300]]
 parsed = []
-for stitches in fillStitch(shape, density=10, angle=90):
+for stitches in fillStitch(shape, density=10, angle=45):
     parsed.append(parseStitch(stitches))
 stitchVisualize(parsed, [2, 2])
