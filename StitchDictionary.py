@@ -141,7 +141,6 @@ def fillStitch(vectorList, length=defaultLength, density=defaultDensity, angle=d
                 continue
 
             side = point_on_line_side(direction_vector, other_point)
-            print(side)
 
             if side > 1:
                 points_above.append(other_point)
