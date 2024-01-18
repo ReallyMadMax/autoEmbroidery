@@ -31,7 +31,7 @@ def writeStitch(x,y):
         byte1 = "0b11000000"
     byte2 = bin(abs(y))
     byte3 = bin(abs(x))
-    return [[byte1,byte2,byte3]]
+    return [byte1,byte2,byte3]
 
 def writeJump(x,y):
     if x >= 0 and y >= 0:
@@ -42,20 +42,22 @@ def writeJump(x,y):
         byte1 = "0b00100001"
     elif y < 0:
         byte1 = "0b01000001"
+    else:
+        byte1 = "error"
     byte2 = bin(abs(y))
     byte3 = bin(abs(x))
-    return [[byte1,byte2,byte3]]
+    return [byte1,byte2,byte3]
 
 def writeColorChange():
     byte1 = "0b10001000"
     byte2 = bin(0)
     byte3 = bin(0)
-    return [[byte1,byte2,byte3]]
+    return [byte1,byte2,byte3]
 
 def writeEnd():
     byte1 = "0b11111000"
     byte2 = bin(0)
     byte3 = bin(0)
-    return [[byte1,byte2,byte3]]
+    return [byte1,byte2,byte3]
 
 
